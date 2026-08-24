@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day-9</title>
+
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <a href="#main" class="skip-link">Skip to main content</a>
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <div class="app">
+
+        <header role="banner">
+            <div class="logo">Atmo<em>s</em>phera</div>
+            <div role="group" aria-label="Temperature unit">
+                <div class="unit-toggle">
+                    <button class="unit-btn active" id="btn-c" onclick="setUnit('metric')"
+                        aria-pressed="true">°C</button>
+                    <button class="unit-btn" id="btn-f" onclick="setUnit('imperial')" aria-pressed="false">°F</button>
+                </div>
+            </div>
+        </header>
+
+        <main id="main">
+
+            <div class="search-container" role="search" aria-label="Location search">
+                <div class="search-bar">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Search city…" autocomplete="off"
+                        aria-label="City name" aria-autocomplete="list" aria-controls="ac-list" aria-expanded="false"
+                        role="combobox">
+                    <button class="geo-btn" id="geo-btn" onclick="geoLocate()" aria-label="Use my current location"
+                        title="Use my location">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" aria-hidden="true">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M12 1v4M12 19v4M1 12h4M19 12h4" />
+                        </svg>
+                    </button>
+                </div>
+                <ul class="autocomplete-dropdown hidden" id="ac-list" role="listbox" aria-label="City suggestions"></ul>
+            </div>
+
+            <div class="notice setup" id="setup-notice">
+                <h3>Setup Required</h3>
+                <p>
+                    This app uses <strong>OpenWeatherMap</strong> (free tier — no credit card needed).<br>
+                    <strong>1.</strong> Register at
+                    <a href="https://openweathermap.org/api" target="_blank" rel="noopener">openweathermap.org/api</a>
+                    and copy your API key.<br>
+                    <strong>2.</strong> Open <code>index.html</code> in a text editor,
+                    find <code>YOUR_API_KEY_HERE</code> in the script, and replace it.<br>
+                    <strong>3.</strong> Save and reload. New keys activate within
+                    <strong>10 min – 2 hours</strong> after sign-up.
+                </p>
+            </div>
+
+            <div class="error-bar" id="error-bar" role="alert" aria-live="assertive">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4M12 16h.01" />
+                </svg>
+                <span id="error-msg"></span>
+            </div>
+
+            <div class="loading" id="loading" aria-live="polite" aria-label="Loading weather data">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+
+            <div id="weather-content" class="hidden" aria-live="polite" aria-atomic="true">
+
+                <section class="current-card" aria-label="Current conditions">
+                    <div>
+                        <div class="w-label" id="w-date"></div>
+                        <h1 class="w-city" id="w-city"></h1>
+                        <div class="w-state" id="w-state"></div>
+                        <div class="temp-wrap">
+                            <span class="temp-num" id="w-temp"></span>
+                            <span class="temp-sym" id="w-sym"></span>
+                        </div>
+                        <div class="w-desc" id="w-desc"></div>
+                        <div class="w-feels" id="w-feels"></div>
+                    </div>
+                    <div class="w-icon-wrap">
+                        <img class="w-icon-large" id="w-icon" src="" alt="">
+                    </div>
+                </section>
+
+                <div class="metrics-grid" role="list" aria-label="Weather details">
+                    <div class="metric-card" role="listitem">
+                        <svg class="m-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" aria-hidden="true">
+                            <path d="M12 22a6 6 0 0 0 6-6c0-4-6-10-6-10S6 12 6 16a6 6 0 0 0 6 6z" />
+                        </svg>
+                        <div class="m-label">Humidity</div>
+                        <div class="m-val"><span id="m-hum">—</span><span class="m-unit">%</span></div>
+                    </div>
+                    <div class="metric-card" role="listitem">
+                        <svg class="m-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" aria-hidden="true">
+                            <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" />
+                            <path d="M9.6 4.6A2 2 0 1 1 11 8H2" />
+                            <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
+                        </svg>
+                        <div class="m-label">Wind</div>
+                        <div class="m-val"><span id="m-wind">—</span><span class="m-unit" id="wind-unit">km/h</span>
+                        </div>
+                    </div>
+                    <div class="metric-card" role="listitem">
+                        <svg class="m-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" aria-hidden="true">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                        <div class="m-label">Visibility</div>
+                        <div class="m-val"><span id="m-vis">—</span><span class="m-unit">km</span></div>
+                    </div>
+                    <div class="metric-card" role="listitem">
+                        <svg class="m-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" aria-hidden="true">
+                            <path
+                                d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                        </svg>
+                        <div class="m-label">Pressure</div>
+                        <div class="m-val"><span id="m-pres">—</span><span class="m-unit">hPa</span></div>
+                    </div>
+                </div>
+
+                <div class="sun-bar" aria-label="Sun schedule">
+                    <div class="sun-card">
+                        <svg class="sun-icon" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                            <path
+                                d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                        </svg>
+                        <div>
+                            <div class="sun-lbl">Sunrise</div>
+                            <div class="sun-time" id="w-rise">—</div>
+                        </div>
+                    </div>
+                    <div class="sun-card">
+                        <svg class="sun-icon" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" opacity=".5" />
+                            <path
+                                d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                                opacity=".5" />
+                            <path d="M17 16a5 5 0 0 1-9 0" stroke-width="1.8" />
+                        </svg>
+                        <div>
+                            <div class="sun-lbl">Sunset</div>
+                            <div class="sun-time" id="w-set">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-lbl">5-day forecast</div>
+                <ul class="forecast-strip" id="forecast-strip" aria-label="5-day weather forecast"></ul>
+
+                <footer class="footer-bar" role="contentinfo">
+                    <div class="last-upd" aria-live="polite">
+                        <div class="live-dot" aria-hidden="true"></div>
+                        Updated <span id="upd-time">—</span> · auto-refreshes every 10 min
+                    </div>
+                    <button class="refresh-btn" onclick="manualRefresh()" aria-label="Refresh weather data now">Refresh
+                        now</button>
+                </footer>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./assets/js/script.js"></script>
+
+</body>
+
+</html>
